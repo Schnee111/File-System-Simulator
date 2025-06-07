@@ -9,6 +9,8 @@ Simulasi Sistem Operasi untuk Manajemen File - Tugas Mata Kuliah Sistem Operasi
 - Muhammad Daffa Ma'arif (2305771)
 - Narendra Ridha Baihaqi
 
+---
+
 ## Deskripsi
 
 File System Simulator adalah aplikasi simulasi sistem file yang meniru fungsionalitas sistem operasi Unix/Linux. Aplikasi ini dibuat untuk membantu memahami konsep manajemen file dalam sistem operasi, termasuk struktur direktori, permissions, dan operasi file dasar.
@@ -79,18 +81,18 @@ Project ini menggunakan arsitektur full-stack dengan pemisahan yang jelas antara
 
 ### 1. Setup Backend (Python)
 
-# Clone repository
+#### Clone repository
 ```
 git clone <repository-url>
 cd file-system-simulator
 ```
 
-# Install Python dependencies
+#### Install Python dependencies
 ```
 pip install -r requirement.txt
 ```
 
-# Jalankan API server
+#### Jalankan API server
 ```
 python backend/api.py
 ```
@@ -103,7 +105,7 @@ Backend akan berjalan di `http://localhost:8000`
 ```
 npm install
 ```
-#### atau
+atau
 ```
 yarn install
 ```
@@ -112,7 +114,7 @@ yarn install
 ```
 npm run dev
 ```
-#### atau
+atau
 ```
 yarn dev
 ```
