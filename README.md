@@ -79,12 +79,21 @@ Project ini menggunakan arsitektur full-stack dengan pemisahan yang jelas antara
 - Node.js 16+
 - npm atau yarn
 
-### 1. Setup Backend (Python)
-
-#### Clone repository
+#### 1.Clone repository
 ```
 git clone <repository-url>
 cd file-system-simulator
+```
+atau download zip repository ini
+```
+cd path/to/project
+```
+
+### 2. Setup Backend (Python)
+
+#### Ke direktori backend
+```
+cd backend
 ```
 
 #### Install Python dependencies
@@ -94,12 +103,17 @@ pip install -r requirement.txt
 
 #### Jalankan API server
 ```
-python backend/api.py
+python api.py
 ```
 
 Backend akan berjalan di `http://localhost:8000`
 
-### 2. Setup Frontend (Next.js)
+### 3. Setup Frontend (Next.js)
+
+#### Ke direktori frontend
+```
+cd frontend
+```
 
 #### Install Node.js dependencies
 ```
