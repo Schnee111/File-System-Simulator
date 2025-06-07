@@ -79,7 +79,7 @@ Project ini menggunakan arsitektur full-stack dengan pemisahan yang jelas antara
 - Node.js 16+
 - npm atau yarn
 
-#### 1.Clone repository
+### 1. Clone repository
 ```
 git clone <repository-url>
 cd file-system-simulator
