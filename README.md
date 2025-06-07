@@ -2,11 +2,20 @@
 
 Simulasi Sistem Operasi untuk Manajemen File - Tugas Mata Kuliah Sistem Operasi
 
-## 📋 Deskripsi
+---
+## Anggota
+- Alifa Salsabila
+- Elsa Nurjanah
+- Muhammad Daffa Ma'arif (2305771)
+- Narendra Ridha Baihaqi
+
+## Deskripsi
 
 File System Simulator adalah aplikasi simulasi sistem file yang meniru fungsionalitas sistem operasi Unix/Linux. Aplikasi ini dibuat untuk membantu memahami konsep manajemen file dalam sistem operasi, termasuk struktur direktori, permissions, dan operasi file dasar.
 
-## 🏗️ Arsitektur
+---
+
+## Arsitektur
 
 Project ini menggunakan arsitektur full-stack dengan pemisahan yang jelas antara backend dan frontend:
 
@@ -24,7 +33,9 @@ Project ini menggunakan arsitektur full-stack dengan pemisahan yang jelas antara
 - **Real-time Updates**: Sinkronisasi real-time antara GUI dan terminal
 - **Interactive Dialogs**: Modal untuk file operations dan permission management
 
-## ✨ Fitur Utama
+---
+
+## Fitur Utama
 
 ### 🗂️ File Management
 - **File Operations**: Create, read, update, delete files dan directories
@@ -57,6 +68,8 @@ Project ini menggunakan arsitektur full-stack dengan pemisahan yang jelas antara
 - **Quota Simulation**: Simulasi batasan disk space
 - **Visual Progress**: Progress bar untuk visualisasi penggunaan disk
 
+---
+
 ## Cara Menjalankan
 
 ### Prerequisites
@@ -66,34 +79,43 @@ Project ini menggunakan arsitektur full-stack dengan pemisahan yang jelas antara
 
 ### 1. Setup Backend (Python)
 
-\`\`\`bash
 # Clone repository
+```
 git clone <repository-url>
 cd file-system-simulator
+```
 
 # Install Python dependencies
-pip install fastapi uvicorn
+```
+pip install -r requirement.txt
+```
 
 # Jalankan API server
-python scripts/api.py
-\`\`\`
+```
+python backend/api.py
+```
 
 Backend akan berjalan di `http://localhost:8000`
 
 ### 2. Setup Frontend (Next.js)
 
-\`\`\`bash
-# Install Node.js dependencies
+#### Install Node.js dependencies
+```
 npm install
-# atau
+```
+#### atau
+```
 yarn install
+```
 
-# Jalankan development server
+#### Jalankan development server
+```
 npm run dev
-# atau
+```
+#### atau
+```
 yarn dev
-\`\`\`
-
+```
 Frontend akan berjalan di `http://localhost:3000`
 
 ### 3. Akses Aplikasi
@@ -103,10 +125,12 @@ Frontend akan berjalan di `http://localhost:3000`
 3. Klik "Connect" untuk menghubungkan ke backend
 4. Mulai eksplorasi file system simulator!
 
-## 📖 Command Reference
+---
+
+## Command Reference
 
 ### File Operations
-\`\`\`bash
+```
 ls [path]              # List directory contents
 ls -la                 # List with detailed information
 cd <path>              # Change directory
@@ -115,31 +139,32 @@ mkdir <name>           # Create directory
 touch <name>           # Create file
 rm <name>              # Remove file
 rm -r <name>           # Remove directory recursively
-\`\`\`
+```
 
 ### File Content
-\`\`\`bash
+```
 cat <filename>         # Display file contents
 file <filename>        # Show file information
-\`\`\`
+```
 
 ### Permission Management
-\`\`\`bash
+```
 chmod <perms> <file>   # Change file permissions
                        # Examples: chmod 755 file.txt
                        #          chmod rwxr-xr-x file.txt
 chown <owner> <file>   # Change file owner
-\`\`\`
+```
 
 ### System Information
-\`\`\`bash
+```
 df                     # Show disk usage
 tree                   # Show directory tree
 find <name> [path]     # Find files by name
 help                   # Show available commands
-\`\`\`
+```
+---
 
-## 🎯 Cara Menggunakan
+## Cara Menggunakan
 
 ### File Explorer
 1. **Navigasi**: Klik folder untuk expand/collapse
@@ -166,6 +191,8 @@ help                   # Show available commands
 3. **Enter Content**: Untuk text file, masukkan content
 4. **Auto-sizing**: Non-text file akan mendapat ukuran otomatis
 
+---
+
 ## 🔧 Konfigurasi
 
 ### Backend Configuration
@@ -179,7 +206,7 @@ help                   # Show available commands
 
 ## 📁 Struktur Project
 
-\`\`\`
+```
 file-system-simulator/
 ├── front/                   # GUI ddengan next js
 |   ├── app/
@@ -196,9 +223,11 @@ file-system-simulator/
 |   └── requirements.txt         # Python dependencies
 |
 └── README.md               # Documentation
-\`\`\`
+```
 
-## 🎨 Teknologi yang Digunakan
+---
+
+## Teknologi yang Digunakan
 
 ### Backend
 - **Python 3.7+**: Core programming language
@@ -214,20 +243,9 @@ file-system-simulator/
 - **Shadcn/ui**: Modern UI component library
 - **Lucide React**: Icon library
 
-## 🔮 Fitur Mendatang
+---
 
-- [ ] **File Search**: Search functionality untuk mencari file
-- [ ] **File Editing**: In-place editing untuk text files
-- [ ] **Drag & Drop**: Drag & drop untuk move/copy files
-- [ ] **Context Menu**: Right-click context menu
-- [ ] **File Thumbnails**: Preview thumbnail untuk image files
-- [ ] **Command History**: Navigation dengan arrow keys di terminal
-- [ ] **Multi-user Support**: Simulasi multiple users
-- [ ] **File Compression**: Simulasi file compression/decompression
-- [ ] **Symbolic Links**: Support untuk symbolic links
-- [ ] **File Backup**: Backup dan restore functionality
-
-## 🤝 Kontribusi
+## Kontribusi
 
 Project ini dibuat untuk tujuan edukasi. Kontribusi dan saran sangat diterima:
 
@@ -237,9 +255,13 @@ Project ini dibuat untuk tujuan edukasi. Kontribusi dan saran sangat diterima:
 4. Push to branch
 5. Create Pull Request
 
+---
+
 ## 📝 Lisensi
 
 Project ini dibuat untuk keperluan akademik dan pembelajaran.
+
+---
 
 ## 👥 Tim Pengembang
 
