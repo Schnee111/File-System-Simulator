@@ -98,7 +98,7 @@ cd backend
 
 #### Install Python dependencies
 ```
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 #### Jalankan API server
