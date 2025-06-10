@@ -4,10 +4,10 @@ Simulasi Sistem Operasi untuk Manajemen File - Tugas Mata Kuliah Sistem Operasi
 
 ---
 ## Anggota
-- Alifa Salsabila
-- Elsa Nurjanah
+- Alifa Salsabila (2308138)
+- Elsa Nurjanah (2306026)
 - Muhammad Daffa Ma'arif (2305771)
-- Narendra Ridha Baihaqi
+- Narendra Ridha Baihaqi (2308882)
 
 ---
 
