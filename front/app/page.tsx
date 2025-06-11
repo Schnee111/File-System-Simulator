@@ -721,10 +721,9 @@ export default function FileSystemSimulator() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="filesystem" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="filesystem">File System</TabsTrigger>
             <TabsTrigger value="allocation">Block Allocation</TabsTrigger>
-            <TabsTrigger value="terminal">Terminal Only</TabsTrigger>
           </TabsList>
 
           <TabsContent value="filesystem" className="space-y-4">
@@ -749,6 +748,146 @@ export default function FileSystemSimulator() {
                 ) : (
                   <div className="text-center py-2 text-muted-foreground">Loading disk information...</div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <Card>
+              <CardHeader>
+                <CardTitle>File Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  <Dialog open={createFolderDialog} onOpenChange={setCreateFolderDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" disabled={loading || !fileSystemState}>
+                        <FolderPlus className="w-4 h-4 mr-2" />
+                        New Folder
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Create New Folder</DialogTitle>
+                        <DialogDescription>
+                          Enter the name for the new folder in the current directory.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="folder-name" className="text-right">
+                            Name
+                          </Label>
+                          <Input
+                            id="folder-name"
+                            value={newFolderName}
+                            onChange={(e) => setNewFolderName(e.target.value)}
+                            className="col-span-3"
+                            placeholder="Enter folder name..."
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit" onClick={createFolder} disabled={!newFolderName.trim() || loading}>
+                          Create Folder
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={createFileDialog} onOpenChange={setCreateFileDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" disabled={loading || !fileSystemState}>
+                        <FileText className="w-4 h-4 mr-2" />
+                        New File
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Create New File</DialogTitle>
+                        <DialogDescription>
+                          Choose file type and enter content. File size will be calculated automatically.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="file-type" className="text-right">
+                            Type
+                          </Label>
+                          <Select value={selectedFileType} onValueChange={setSelectedFileType}>
+                            <SelectTrigger className="col-span-3">
+                              <SelectValue placeholder="Select file type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {fileTypes.map((type) => (
+                                <SelectItem key={type.value} value={type.value}>
+                                  {type.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="file-name" className="text-right">
+                            Name
+                          </Label>
+                          <Input
+                            id="file-name"
+                            value={newFileName}
+                            onChange={(e) => setNewFileName(e.target.value)}
+                            className="col-span-3"
+                            placeholder="Enter file name..."
+                          />
+                        </div>
+                        {selectedFileType === "text" && (
+                          <div className="grid grid-cols-4 items-start gap-4">
+                            <Label htmlFor="file-content" className="text-right pt-2">
+                              Content
+                            </Label>
+                            <Textarea
+                              id="file-content"
+                              value={newFileContent}
+                              onChange={(e) => setNewFileContent(e.target.value)}
+                              className="col-span-3 min-h-32"
+                              placeholder="Enter file content..."
+                            />
+                          </div>
+                        )}
+                        {selectedFileType !== "text" && (
+                          <div className="col-span-4 text-sm text-muted-foreground bg-muted p-3 rounded">
+                            <strong>Note:</strong> This will create a simulated {selectedFileType} file with realistic
+                            file size.
+                            {selectedFileType === "image" && " (50KB - 2MB)"}
+                            {selectedFileType === "video" && " (5MB - 50MB)"}
+                            {selectedFileType === "audio" && " (1MB - 10MB)"}
+                            {selectedFileType === "document" && " (10KB - 500KB)"}
+                            {selectedFileType === "archive" && " (100KB - 10MB)"}
+                            {selectedFileType === "executable" && " (1MB - 100MB)"}
+                          </div>
+                        )}
+                        <div className="text-sm text-muted-foreground">
+                          {selectedFileType === "text"
+                            ? `File size: ${new Blob([newFileContent]).size} bytes`
+                            : "File size will be determined automatically based on file type"}
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit" onClick={createFile} disabled={!newFileName.trim() || loading}>
+                          Create File
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => executeCommand("ls -la")}
+                    disabled={loading || !fileSystemState}
+                  >
+                    <File className="w-4 h-4 mr-2" />
+                    List Details
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -945,146 +1084,6 @@ export default function FileSystemSimulator() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Action Buttons */}
-            <Card>
-              <CardHeader>
-                <CardTitle>File Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  <Dialog open={createFolderDialog} onOpenChange={setCreateFolderDialog}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" disabled={loading || !fileSystemState}>
-                        <FolderPlus className="w-4 h-4 mr-2" />
-                        New Folder
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create New Folder</DialogTitle>
-                        <DialogDescription>
-                          Enter the name for the new folder in the current directory.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="folder-name" className="text-right">
-                            Name
-                          </Label>
-                          <Input
-                            id="folder-name"
-                            value={newFolderName}
-                            onChange={(e) => setNewFolderName(e.target.value)}
-                            className="col-span-3"
-                            placeholder="Enter folder name..."
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button type="submit" onClick={createFolder} disabled={!newFolderName.trim() || loading}>
-                          Create Folder
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-
-                  <Dialog open={createFileDialog} onOpenChange={setCreateFileDialog}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" disabled={loading || !fileSystemState}>
-                        <FileText className="w-4 h-4 mr-2" />
-                        New File
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Create New File</DialogTitle>
-                        <DialogDescription>
-                          Choose file type and enter content. File size will be calculated automatically.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="file-type" className="text-right">
-                            Type
-                          </Label>
-                          <Select value={selectedFileType} onValueChange={setSelectedFileType}>
-                            <SelectTrigger className="col-span-3">
-                              <SelectValue placeholder="Select file type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {fileTypes.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="file-name" className="text-right">
-                            Name
-                          </Label>
-                          <Input
-                            id="file-name"
-                            value={newFileName}
-                            onChange={(e) => setNewFileName(e.target.value)}
-                            className="col-span-3"
-                            placeholder="Enter file name..."
-                          />
-                        </div>
-                        {selectedFileType === "text" && (
-                          <div className="grid grid-cols-4 items-start gap-4">
-                            <Label htmlFor="file-content" className="text-right pt-2">
-                              Content
-                            </Label>
-                            <Textarea
-                              id="file-content"
-                              value={newFileContent}
-                              onChange={(e) => setNewFileContent(e.target.value)}
-                              className="col-span-3 min-h-32"
-                              placeholder="Enter file content..."
-                            />
-                          </div>
-                        )}
-                        {selectedFileType !== "text" && (
-                          <div className="col-span-4 text-sm text-muted-foreground bg-muted p-3 rounded">
-                            <strong>Note:</strong> This will create a simulated {selectedFileType} file with realistic
-                            file size.
-                            {selectedFileType === "image" && " (50KB - 2MB)"}
-                            {selectedFileType === "video" && " (5MB - 50MB)"}
-                            {selectedFileType === "audio" && " (1MB - 10MB)"}
-                            {selectedFileType === "document" && " (10KB - 500KB)"}
-                            {selectedFileType === "archive" && " (100KB - 10MB)"}
-                            {selectedFileType === "executable" && " (1MB - 100MB)"}
-                          </div>
-                        )}
-                        <div className="text-sm text-muted-foreground">
-                          {selectedFileType === "text"
-                            ? `File size: ${new Blob([newFileContent]).size} bytes`
-                            : "File size will be determined automatically based on file type"}
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button type="submit" onClick={createFile} disabled={!newFileName.trim() || loading}>
-                          Create File
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => executeCommand("ls -la")}
-                    disabled={loading || !fileSystemState}
-                  >
-                    <File className="w-4 h-4 mr-2" />
-                    List Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="allocation" className="space-y-4">
@@ -1095,126 +1094,6 @@ export default function FileSystemSimulator() {
               currentDir={currentDir}
               onRefresh={fetchState}
             />
-          </TabsContent>
-
-          <TabsContent value="terminal" className="space-y-4">
-            {/* Full-screen Terminal */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Terminal className="w-5 h-5" />
-                  Terminal - Full Screen Mode
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <ScrollArea
-                    className="h-[600px] bg-black text-green-400 p-4 rounded font-mono text-sm"
-                    ref={terminalRef}
-                  >
-                    <div className="min-h-full">
-                      {terminalHistory.map((line, index) => (
-                        <div key={index} className="whitespace-pre-wrap">
-                          {line}
-                        </div>
-                      ))}
-                      {loading && <div className="animate-pulse">Processing...</div>}
-                    </div>
-                  </ScrollArea>
-                  <form onSubmit={handleCommandSubmit} className="flex gap-2">
-                    <div className="flex-1 flex items-center gap-2 bg-black text-green-400 px-3 py-2 rounded font-mono text-sm">
-                      <span>{currentPath}$</span>
-                      <Input
-                        value={command}
-                        onChange={(e) => setCommand(e.target.value)}
-                        className="bg-transparent border-none text-green-400 font-mono p-0 h-auto focus-visible:ring-0"
-                        placeholder="Enter command..."
-                        autoComplete="off"
-                        disabled={loading || !fileSystemState}
-                      />
-                    </div>
-                    <Button type="submit" disabled={loading || !fileSystemState}>
-                      Execute
-                    </Button>
-                  </form>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Terminal Quick Commands */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Commands</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => executeCommand("ls -la")}
-                    disabled={loading || !fileSystemState}
-                  >
-                    ls -la
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => executeCommand("pwd")}
-                    disabled={loading || !fileSystemState}
-                  >
-                    pwd
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => executeCommand("df -h")}
-                    disabled={loading || !fileSystemState}
-                  >
-                    df -h
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => executeCommand("tree")}
-                    disabled={loading || !fileSystemState}
-                  >
-                    tree
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => executeCommand("help")}
-                    disabled={loading || !fileSystemState}
-                  >
-                    help
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => executeCommand("whoami")}
-                    disabled={loading || !fileSystemState}
-                  >
-                    whoami
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => executeCommand("date")}
-                    disabled={loading || !fileSystemState}
-                  >
-                    date
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => executeCommand("clear")}
-                    disabled={loading || !fileSystemState}
-                  >
-                    clear
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
 
