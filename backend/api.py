@@ -274,5 +274,38 @@ def get_file_types():
         ]
     }
 
+@app.get("/block-info")
+def get_block_info():
+    """Get information about block allocation"""
+    block_info = fs.get_block_info()
+    return {
+        "result": "Block information retrieved",
+        "block_info": block_info,
+        "state": get_current_state()
+    }
+
+@app.get("/file-blocks/{filename}")
+def get_file_blocks(filename: str):
+    """Get blocks used by a specific file"""
+    file_blocks = fs.get_file_blocks(filename)
+    return {
+        "result": "File block information retrieved",
+        "file_blocks": file_blocks,
+        "state": get_current_state()
+    }
+
+@app.post("/set-allocation-strategy")
+def set_allocation_strategy(request: dict):
+    """Set the allocation strategy for new files"""
+    strategy = request.get("strategy", "indexed")
+    try:
+        result = fs.set_allocation_strategy(strategy)
+        return {
+            "result": result,
+            "state": get_current_state()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)

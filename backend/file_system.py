@@ -3,6 +3,14 @@ import json
 import time
 from datetime import datetime
 import random
+import math
+import random
+from typing import List, Dict, Tuple, Optional, Set
+
+# Block size in bytes
+BLOCK_SIZE = 4096  # 4KB blocks
+# Default allocation strategy
+DEFAULT_ALLOCATION_STRATEGY = "indexed"  # Options: "contiguous", "linked", "indexed"
 
 class FileSystemNode:
     def __init__(self, name, node_type, parent=None):
@@ -17,6 +25,10 @@ class FileSystemNode:
         self.owner = "user"  # Default owner
         self.content = ""  # File content
         self.file_type = self._detect_file_type(name) if node_type == "file" else None
+        # Block allocation information
+        self.blocks = []  # List of block numbers used by this file
+        self.start_block = None  # Starting block (for contiguous allocation)
+        self.allocation_type = DEFAULT_ALLOCATION_STRATEGY
         
     def _detect_file_type(self, filename):
         """Detect file type based on extension"""
@@ -107,6 +119,15 @@ class FileSystem:
         self.current_path = ["/"]
         self.total_size = total_size
         self.used_size = 0
+        # Block allocation
+        self.total_blocks = math.ceil(total_size / BLOCK_SIZE)
+        self.free_blocks = set(range(self.total_blocks))
+        self.used_blocks = set()
+        self.block_map = {}  # Maps block number to file node
+        self.allocation_strategy = DEFAULT_ALLOCATION_STRATEGY  # Default strategy
+        
+        # Initialize block bitmap
+        self.block_bitmap = [False] * self.total_blocks  # False = free, True = used
         
         # Initialize with some default directories and sample files
         self._mkdir("home")
@@ -504,6 +525,192 @@ class FileSystem:
         self._update_disk_usage()
         return f"Directory '{name}' created"
     
+    def _allocate_blocks(self, file_node, size_needed):
+        """Allocate blocks for a file based on the current allocation strategy"""
+        num_blocks_needed = math.ceil(size_needed / BLOCK_SIZE)
+        
+        if num_blocks_needed == 0:
+            num_blocks_needed = 1  # Always allocate at least one block
+            
+        if self.allocation_strategy == "contiguous":
+            return self._allocate_contiguous(file_node, num_blocks_needed)
+        elif self.allocation_strategy == "linked":
+            return self._allocate_linked(file_node, num_blocks_needed)
+        else:  # Default to indexed
+            return self._allocate_indexed(file_node, num_blocks_needed)
+    
+    def _allocate_contiguous(self, file_node, num_blocks):
+        """Allocate contiguous blocks for a file"""
+        # Find a contiguous run of free blocks
+        best_start = None
+        best_run_length = 0
+        current_start = None
+        current_run_length = 0
+        
+        for i in range(self.total_blocks):
+            if i in self.free_blocks:
+                if current_start is None:
+                    current_start = i
+                current_run_length += 1
+                
+                if current_run_length >= num_blocks and (best_start is None or current_run_length < best_run_length):
+                    best_start = current_start
+                    best_run_length = current_run_length
+            else:
+                current_start = None
+                current_run_length = 0
+        
+        if best_start is None:
+            raise Exception(f"Not enough contiguous space for file of size {num_blocks * BLOCK_SIZE} bytes")
+        
+        # Allocate the blocks
+        allocated_blocks = list(range(best_start, best_start + num_blocks))
+        file_node.blocks = allocated_blocks
+        file_node.start_block = best_start
+        file_node.allocation_type = "contiguous"
+        
+        # Update block tracking
+        for block in allocated_blocks:
+            self.free_blocks.remove(block)
+            self.used_blocks.add(block)
+            self.block_bitmap[block] = True
+            self.block_map[block] = file_node
+            
+        return allocated_blocks
+    
+    def _allocate_linked(self, file_node, num_blocks):
+        """Allocate linked blocks for a file"""
+        if len(self.free_blocks) < num_blocks:
+            raise Exception(f"Not enough space for file of size {num_blocks * BLOCK_SIZE} bytes")
+        
+        # Take random blocks from free blocks
+        allocated_blocks = []
+        for _ in range(num_blocks):
+            block = random.choice(list(self.free_blocks))
+            allocated_blocks.append(block)
+            self.free_blocks.remove(block)
+            self.used_blocks.add(block)
+            self.block_bitmap[block] = True
+            self.block_map[block] = file_node
+        
+        file_node.blocks = allocated_blocks
+        file_node.allocation_type = "linked"
+        return allocated_blocks
+    
+    def _allocate_indexed(self, file_node, num_blocks):
+        """Allocate indexed blocks for a file"""
+        if len(self.free_blocks) < num_blocks:
+            raise Exception(f"Not enough space for file of size {num_blocks * BLOCK_SIZE} bytes")
+        
+        # Take blocks from free blocks (can be non-contiguous)
+        available_blocks = list(self.free_blocks)
+        allocated_blocks = available_blocks[:num_blocks]
+        
+        file_node.blocks = allocated_blocks
+        file_node.allocation_type = "indexed"
+        
+        # Update block tracking
+        for block in allocated_blocks:
+            self.free_blocks.remove(block)
+            self.used_blocks.add(block)
+            self.block_bitmap[block] = True
+            self.block_map[block] = file_node
+            
+        return allocated_blocks
+    
+    def _free_blocks(self, file_node):
+        """Free all blocks used by a file"""
+        if not hasattr(file_node, 'blocks') or not file_node.blocks:
+            return
+            
+        for block in file_node.blocks:
+            if block in self.used_blocks:
+                self.used_blocks.remove(block)
+                self.free_blocks.add(block)
+                self.block_bitmap[block] = False
+                if block in self.block_map:
+                    del self.block_map[block]
+        
+        file_node.blocks = []
+        file_node.start_block = None
+    
+    def set_allocation_strategy(self, strategy):
+        """Set the allocation strategy for new files"""
+        if strategy not in ["contiguous", "linked", "indexed"]:
+            raise ValueError("Invalid allocation strategy. Choose from: contiguous, linked, indexed")
+        self.allocation_strategy = strategy
+        return f"Allocation strategy set to {strategy}"
+    
+    def get_block_info(self):
+        """Get information about block allocation"""
+        return {
+            "total_blocks": self.total_blocks,
+            "used_blocks": len(self.used_blocks),
+            "free_blocks": len(self.free_blocks),
+            "block_size": BLOCK_SIZE,
+            "bitmap": self.block_bitmap,
+            "fragmentation_index": self._calculate_fragmentation()
+        }
+    
+    def get_file_blocks(self, filename):
+        """Get blocks used by a specific file"""
+        current_dir = self._get_current_directory()
+        if not current_dir:
+            return "Failed to get current directory"
+            
+        # Find the file
+        target_file = None
+        for child in current_dir.children:
+            if child.name == filename:
+                target_file = child
+                break
+                
+        if not target_file:
+            return f"File '{filename}' not found"
+            
+        if target_file.type != "file":
+            return f"'{filename}' is not a file"
+            
+        if not hasattr(target_file, 'blocks') or not target_file.blocks:
+            return f"File '{filename}' has no block allocation information"
+            
+        return {
+            "filename": filename,
+            "size": target_file.size,
+            "blocks": target_file.blocks,
+            "allocation_type": target_file.allocation_type,
+            "start_block": target_file.start_block,
+            "block_count": len(target_file.blocks)
+        }
+    
+    def _calculate_fragmentation(self):
+        """Calculate a fragmentation index (0-100)"""
+        if len(self.used_blocks) == 0:
+            return 0
+            
+        # Count contiguous runs of used blocks
+        runs = 0
+        in_run = False
+        
+        for i in range(self.total_blocks):
+            if i in self.used_blocks:
+                if not in_run:
+                    runs += 1
+                    in_run = True
+            else:
+                in_run = False
+                
+        # Perfect case: all used blocks in one run
+        # Worst case: alternating used/free blocks
+        max_possible_runs = min(len(self.used_blocks), len(self.free_blocks) + 1)
+        
+        if max_possible_runs <= 1:
+            return 0
+            
+        # Scale to 0-100
+        fragmentation = ((runs - 1) / (max_possible_runs - 1)) * 100
+        return round(fragmentation)
+    
     def touch(self, name, size=None, content="", file_type=None):
         """Create file or update timestamp"""
         if not name:
@@ -541,6 +748,12 @@ class FileSystem:
         if new_file.file_type == "text" and not content:
             new_file.content = f"Sample content for {name}\nCreated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         
+        # Allocate blocks for the file
+        try:
+            self._allocate_blocks(new_file, file_size)
+        except Exception as e:
+            return f"touch: cannot create file: {str(e)}"
+        
         current_dir.children.append(new_file)
         current_dir.modified = datetime.now()
         
@@ -572,12 +785,30 @@ class FileSystem:
         if target.type == "directory" and target.children and not recursive:
             return f"rm: cannot remove '{name}': Is a directory, use -r for recursive removal"
             
+        # Free blocks if it's a file
+        if target.type == "file":
+            self._free_blocks(target)
+        elif target.type == "directory" and recursive:
+            # Recursively free blocks for all files in the directory
+            self._free_blocks_recursive(target)
+            
         # Remove the target
         current_dir.children.pop(target_index)
         current_dir.modified = datetime.now()
         
         self._update_disk_usage()
         return f"'{name}' removed"
+    
+    def _free_blocks_recursive(self, dir_node):
+        """Recursively free blocks for all files in a directory"""
+        if not dir_node.children:
+            return
+            
+        for child in dir_node.children:
+            if child.type == "file":
+                self._free_blocks(child)
+            elif child.type == "directory":
+                self._free_blocks_recursive(child)
     
     def df(self):
         """Show disk usage"""
